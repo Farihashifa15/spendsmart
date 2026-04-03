@@ -1,32 +1,26 @@
 /* ============================================================
-   style.css — SpendSmart
-   Aesthetic: Bold, editorial, dark theme with lime accent
+   style.css — SpendSmart (v2 — with chart, budget, CSV export)
    ============================================================ */
 
-/* ---- CSS Variables (your design tokens) ---- */
 :root {
-  --bg:          #0f0f0f;       /* main background */
-  --bg-card:     #1a1a1a;       /* card background */
-  --bg-input:    #242424;       /* input background */
-  --accent:      #c8f135;       /* lime green accent */
-  --accent-dark: #a8cc1a;       /* darker accent for hover */
-  --text:        #f0f0f0;       /* primary text */
-  --text-muted:  #888;          /* secondary text */
-  --border:      #2e2e2e;       /* subtle border */
-  --danger:      #ff4d4d;       /* delete button */
+  --bg:          #0f0f0f;
+  --bg-card:     #1a1a1a;
+  --bg-input:    #242424;
+  --accent:      #c8f135;
+  --accent-dark: #a8cc1a;
+  --text:        #f0f0f0;
+  --text-muted:  #888;
+  --border:      #2e2e2e;
+  --danger:      #ff4d4d;
+  --success:     #1D9E75;
+  --warning:     #EF9F27;
   --radius:      14px;
   --font-display: 'Syne', sans-serif;
   --font-body:    'DM Sans', sans-serif;
 }
 
-/* ---- Reset ---- */
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* ---- Base ---- */
 body {
   background-color: var(--bg);
   color: var(--text);
@@ -84,11 +78,8 @@ header {
   transition: border-color 0.2s;
 }
 
-.card:hover {
-  border-color: var(--accent);
-}
+.card:hover { border-color: var(--accent); }
 
-/* The big total card gets the accent color */
 .card--total {
   border-color: var(--accent);
   background: rgba(200, 241, 53, 0.06);
@@ -109,8 +100,83 @@ header {
   color: var(--text);
 }
 
-.card--total .card__amount {
-  color: var(--accent);
+.card--total .card__amount { color: var(--accent); }
+
+/* ============================================================
+   BUDGET SECTION
+   ============================================================ */
+.budget-section {
+  max-width: 780px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
+}
+
+.budget-controls {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.btn-set-budget {
+  background: var(--accent);
+  color: #0f0f0f;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-set-budget:hover { background: var(--accent-dark); }
+
+/* Progress bar wrapper */
+.budget-bar-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+.budget-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* The grey track behind the bar */
+.budget-bar-track {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-input);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* The coloured fill — width set by JS */
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--success);         /* green by default */
+  transition: width 0.4s ease, background 0.4s ease;
+  width: 0%;
+}
+
+/* When overspending — JS adds this class */
+.budget-bar-fill.over    { background: var(--danger); }
+.budget-bar-fill.warning { background: var(--warning); }
+
+.budget-status {
+  font-size: 12px;
+  margin-top: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 /* ============================================================
@@ -131,7 +197,6 @@ header {
   letter-spacing: -0.3px;
 }
 
-/* The form itself */
 #expense-form {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -142,7 +207,6 @@ header {
   gap: 18px;
 }
 
-/* Form group = label + input pair */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -157,7 +221,6 @@ header {
   font-weight: 500;
 }
 
-/* All inputs & selects share the same style */
 input[type="text"],
 input[type="number"],
 input[type="date"],
@@ -174,14 +237,10 @@ select {
   width: 100%;
 }
 
-input:focus,
-select:focus {
-  border-color: var(--accent);
-}
+input:focus, select:focus { border-color: var(--accent); }
 
-/* The add button spans both columns */
 .btn-add {
-  grid-column: 1 / -1;          /* stretch across all columns */
+  grid-column: 1 / -1;
   background: var(--accent);
   color: #0f0f0f;
   border: none;
@@ -191,20 +250,70 @@ select:focus {
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  letter-spacing: 0.3px;
   transition: background 0.2s, transform 0.1s;
 }
 
-.btn-add:hover {
-  background: var(--accent-dark);
+.btn-add:hover  { background: var(--accent-dark); }
+.btn-add:active { transform: scale(0.98); }
+
+/* ============================================================
+   CHART SECTION
+   ============================================================ */
+.chart-section {
+  max-width: 780px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
 }
 
-.btn-add:active {
-  transform: scale(0.98);
+.chart-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+}
+
+/* Pie / Bar toggle buttons */
+.chart-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.toggle-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  padding: 6px 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  color: #0f0f0f;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Canvas max size */
+#spending-chart {
+  max-height: 300px;
+  display: none;        /* hidden until there's data */
+}
+
+.chart-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 40px 0;
 }
 
 /* ============================================================
-   EXPENSE LIST SECTION
+   LIST SECTION
    ============================================================ */
 .list-section {
   max-width: 780px;
@@ -212,7 +321,6 @@ select:focus {
   padding: 0 20px;
 }
 
-/* Header row with title + filter */
 .list-header {
   display: flex;
   align-items: center;
@@ -222,7 +330,14 @@ select:focus {
   gap: 12px;
 }
 
-/* Filter dropdown */
+/* Wrapper for filter + export button */
+.list-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 #filter-category {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -235,7 +350,25 @@ select:focus {
   outline: none;
 }
 
-/* The list itself */
+/* Export CSV button */
+.btn-export {
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-export:hover {
+  background: var(--accent);
+  color: #0f0f0f;
+}
+
 #expense-list {
   list-style: none;
   display: flex;
@@ -243,7 +376,6 @@ select:focus {
   gap: 10px;
 }
 
-/* Each expense item */
 .expense-item {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -256,20 +388,17 @@ select:focus {
   animation: slideIn 0.25s ease;
 }
 
-/* Slide-in animation when item is added */
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Left side: category badge + name + date */
 .expense-left {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-/* Colored circle for category */
 .category-badge {
   width: 40px;
   height: 40px;
@@ -283,19 +412,9 @@ select:focus {
   flex-shrink: 0;
 }
 
-.expense-name {
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--text);
-}
+.expense-name  { font-weight: 500; font-size: 14px; color: var(--text); }
+.expense-meta  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-.expense-meta {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-/* Right side: amount + delete */
 .expense-right {
   display: flex;
   align-items: center;
@@ -310,7 +429,6 @@ select:focus {
   white-space: nowrap;
 }
 
-/* Delete button */
 .btn-delete {
   background: none;
   border: 1px solid var(--border);
@@ -322,21 +440,16 @@ select:focus {
   transition: border-color 0.2s, color 0.2s;
 }
 
-.btn-delete:hover {
-  border-color: var(--danger);
-  color: var(--danger);
-}
+.btn-delete:hover { border-color: var(--danger); color: var(--danger); }
 
-/* Empty state */
 .empty-state {
   text-align: center;
   padding: 48px 20px;
   color: var(--text-muted);
   font-size: 14px;
-  display: none;           /* hidden by default, JS shows it */
+  display: none;
 }
 
-/* Clear all button */
 .btn-clear {
   display: block;
   margin: 24px auto 0;
@@ -351,21 +464,13 @@ select:focus {
   transition: border-color 0.2s, color 0.2s;
 }
 
-.btn-clear:hover {
-  border-color: var(--danger);
-  color: var(--danger);
-}
+.btn-clear:hover { border-color: var(--danger); color: var(--danger); }
 
 /* ============================================================
-   RESPONSIVE — stack form to 1 column on small screens
+   RESPONSIVE
    ============================================================ */
 @media (max-width: 520px) {
-  #expense-form {
-    grid-template-columns: 1fr;
-  }
-
-  .list-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  #expense-form { grid-template-columns: 1fr; }
+  .list-header  { flex-direction: column; align-items: flex-start; }
+  .budget-controls { flex-direction: column; align-items: stretch; }
 }
