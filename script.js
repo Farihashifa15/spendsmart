@@ -363,7 +363,7 @@ async function sendTelegramMessage(expense) {
 📅 Date: ${expense.date}
   `;
 
-  const url = `https://api.telegram.org/bot${CONFIG.8315938974:AAH5VPbtDn-UjMOPeeZanR06keoYo_iD5ak}/sendMessage`;
+  const url = `https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`;
 
   try {
 
@@ -373,7 +373,7 @@ async function sendTelegramMessage(expense) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        chat_id: CONFIG.5393524106,
+        chat_id: CONFIG.CHAT_ID,
         text: message
       })
     });
