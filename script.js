@@ -234,13 +234,18 @@ function exportCSV() {
   const headers = ['Name', 'Amount (₹)', 'Category', 'Date'];
 
   // Convert each expense object into a CSV row
-  const rows = expenses.map(exp => [
+  const rows = expenses.map(exp => {
+
+  const formattedDate = new Date(exp.date)
+    .toLocaleDateString('en-GB');
+
+  return [
     exp.name,
     exp.amount.toFixed(2),
     exp.category,
-    exp.date,
-  ]);
-
+    formattedDate,
+  ];
+});
   // Join headers and rows into one big string
   // Each row is joined by commas, rows are separated by newlines
   const csvContent = [headers, ...rows]
@@ -248,7 +253,10 @@ function exportCSV() {
     .join('\n');
 
   // Create a Blob (a file-like object in JS) from the CSV string
-  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const blob = new Blob(
+  ["\uFEFF" + csvContent],
+  { type: 'text/csv;charset=utf-8;' }
+);
 
   // Create a temporary invisible link element
   const link = document.createElement('a');
@@ -344,6 +352,38 @@ function deleteExpense(id) {
 // ============================================================
 //  FORM SUBMIT — Add new expense
 // ============================================================
+async function sendTelegramMessage(expense) {
+
+  const message = `
+💸 New Expense Added
+
+📝 Name: ${expense.name}
+💰 Amount: ₹${expense.amount}
+📂 Category: ${expense.category}
+📅 Date: ${expense.date}
+  `;
+
+  const url = `https://api.telegram.org/bot${CONFIG.8315938974:AAH5VPbtDn-UjMOPeeZanR06keoYo_iD5ak}/sendMessage`;
+
+  try {
+
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        chat_id: CONFIG.5393524106,
+        text: message
+      })
+    });
+
+    console.log('Telegram message sent');
+
+  } catch (error) {
+    console.error('Telegram Error:', error);
+  }
+}
 form.addEventListener('submit', function(event) {
   event.preventDefault();
 
@@ -366,7 +406,11 @@ form.addEventListener('submit', function(event) {
   };
 
   expenses.unshift(newExpense);
+
+  sendTelegramMessage(newExpense);
+
   saveToStorage();
+
   renderList();
 
   nameInput.value   = '';
